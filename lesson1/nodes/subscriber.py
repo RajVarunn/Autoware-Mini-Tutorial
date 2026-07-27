@@ -16,6 +16,6 @@ class Subscriber:
 
 
 if __name__ == '__main__':
-    rospy.init_node('subscriber') # Initialize the node with the name 'subscriber'
+    rospy.init_node('subscriber') # Initialize the node with the name 'subscriber' 
     node = Subscriber()
     node.run()
