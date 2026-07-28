@@ -54,7 +54,7 @@ class Localizer:
         #         - Use convert_azimuth_to_yaw() to get yaw angle
         #         - Use quaternion_from_euler(0, 0, yaw) to get quaternion, create Quaternion object
         azimuth_correction = self.utm_projection.get_factors(msg.longitude, msg.latitude).meridian_convergence
-        yaw = self.convert_azimuth_to_yaw(msg.azimuth - azimuth_correction)
+        yaw = self.convert_azimuth_to_yaw(math.radians(msg.azimuth - azimuth_correction))
         x, y, z, w = quaternion_from_euler(0, 0, yaw)
         orientation = Quaternion(x, y, z, w)
 
