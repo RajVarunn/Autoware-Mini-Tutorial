@@ -35,12 +35,10 @@ class Localizer:
         self.br = TransformBroadcaster()
 
     def transform_coordinates(self, msg):
-        # print(msg.latitude, msg.longitude)
 
         utm_x, utm_y = self.transformer.transform(msg.latitude, msg.longitude)
-        utm_x -= self.origin_x
-        utm_y -= self.origin_y
-        # print(utm_x, utm_y)
+        local_x = utm_x - self.origin_x
+        local_y = utm_y - self.origin_y
 
         azimuth_correction = self.utm_projection.get_factors(msg.longitude, msg.latitude).meridian_convergence
         yaw = self.convert_azimuth_to_yaw(math.radians(msg.azimuth - azimuth_correction))
@@ -50,8 +48,8 @@ class Localizer:
         current_pose_msg = PoseStamped()
         current_pose_msg.header.stamp = msg.header.stamp
         current_pose_msg.header.frame_id = "map"
-        current_pose_msg.pose.position.x = utm_x
-        current_pose_msg.pose.position.y = utm_y
+        current_pose_msg.pose.position.x = local_x
+        current_pose_msg.pose.position.y = local_y
         current_pose_msg.pose.position.z = msg.height - self.undulation
         current_pose_msg.pose.orientation = orientation
         self.current_pose_pub.publish(current_pose_msg)
@@ -67,9 +65,9 @@ class Localizer:
         t.header.stamp = msg.header.stamp
         t.header.frame_id = "map"
         t.child_frame_id = "base_link"
-        t.transform.translation.x = utm_x
-        t.transform.translation.y = utm_y
-        t.transform.translation.z = msg.height - self.undulation
+        t.transform.translation.x = local_x
+        t.transform.translation.y = local_y
+        t.transform.translation.z = current_pose_msg.pose.position.z 
         t.transform.rotation = orientation
         self.br.sendTransform(t)
 
