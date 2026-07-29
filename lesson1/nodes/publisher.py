@@ -10,7 +10,7 @@ class Publisher:
         rate = rospy.get_param('~rate', 2) 
         
         # Internal variables
-        self.rate = rospy.Rate(self.rate)
+        self.rate = rospy.Rate(rate)
 
         # Publishers
         self.pub = rospy.Publisher('/message', String, queue_size=10) # Create a publisher that will publish messages of type String to the topic '/message' with a queue size of 10
