@@ -14,8 +14,7 @@ class PointsClusterer:
         # Parameters
         self.cluster_epsilon = rospy.get_param('~cluster_epsilon')
         self.cluster_min_samples = rospy.get_param('~cluster_min_samples')
-
-        # TODO 1: Create self.clusterer using DBSCAN with the parameters above.
+        self.clusterer = DBSCAN(eps=self.cluster_epsilon, min_samples=self.cluster_min_samples)
 
         # Publishers
         self.clustered_pub = rospy.Publisher('points_clustered', PointCloud2, queue_size=1, tcp_nodelay=True)
@@ -27,22 +26,30 @@ class PointsClusterer:
 
     def points_callback(self, msg):
 
-        # TODO 1: Extract points from the message and cluster them.
-        #         - Use numpify(msg) to convert the PointCloud2 message to a numpy array
-        #         - Use structured_to_unstructured()
-        #           to get an (N, 3) array of point coordinates
-        #         - Run self.clusterer.fit_predict(points) to get cluster labels
-        #         - Skip empty point clouds (0 points) - DBSCAN cannot cluster them
+        data = numpify(msg)
+        points = structured_to_unstructured(data[['x', 'y', 'z']], dtype=np.float32)
+        
+        if len(points) == 0:
+            rospy.logwarn("%s - no points to cluster", rospy.get_name())
+            return
 
-        # TODO 2: Publish the clustered points as a PointCloud2 message.
-        #         - Concatenate points with labels (as a new column)
-        #         - Filter out noise points (label == -1)
-        #         - Convert to structured array with unstructured_to_structured()
-        #         - Use msgify(PointCloud2, data) to create the message
-        #         - Set header stamp and frame_id from the input message
-        #         - Publish with self.clustered_pub
+        labels = self.clusterer.fit_predict(points)
 
-        pass
+        points_labelled = np.concatenate((points, labels[:, np.newaxis]), axis=1)
+        points_labelled = points_labelled[points_labelled[:, 3] != -1]
+
+        data = unstructured_to_structured(points_labelled, dtype=np.dtype([
+            ('x', np.float32),
+            ('y', np.float32),
+            ('z', np.float32),
+            ('label', np.int32)
+        ]))
+
+        cluster_msg = msgify(PointCloud2, data)
+        cluster_msg.header.stamp = msg.header.stamp
+        cluster_msg.header.frame_id = msg.header.frame_id
+        self.clustered_pub.publish(cluster_msg)
+
 
     def run(self):
         rospy.spin()
