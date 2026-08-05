@@ -85,19 +85,22 @@ class SimpleCollisionChecker:
                 object_polygon = shapely.polygons(np.array(obj.convex_hull).reshape(-1, 3))
 
                 if local_path_buffer.intersects(object_polygon):
+                    object_speed = math.sqrt(obj.velocity.x**2 + obj.velocity.y**2)
+                    category = 4 if object_speed > self.stopped_speed_limit else 3
+
                     intersection = local_path_buffer.intersection(object_polygon)
                     intersection_points = shapely.get_coordinates(intersection)
 
                     for x, y in intersection_points:
-                        collision_points = np.append(collision_points, np.array([(x, y, 0.0,
-                            obj.velocity.x, obj.velocity.y, 0.0,
-                            self.braking_safety_distance_obstacle, np.inf, 3)], dtype=DTYPE))
+                        collision_points = np.append(collision_points, np.array([(x, y, obj.centroid.z,
+                            obj.velocity.x, obj.velocity.y, obj.velocity.z,
+                            self.braking_safety_distance_obstacle, np.inf, category)], dtype=DTYPE))
 
         if goal_point is not None:
             goal_point_shapely = shapely.Point(goal_point.x, goal_point.y)
             if local_path_buffer.intersects(goal_point_shapely.buffer(0.1)):
                 collision_points = np.append(collision_points, np.array(
-                    [(goal_point.x, goal_point.y, 0.0, 0.0, 0.0, 0.0, self.braking_safety_distance_goal, np.inf, 1)], dtype=DTYPE))
+                    [(goal_point.x, goal_point.y, goal_point.z, 0.0, 0.0, 0.0, self.braking_safety_distance_goal, np.inf, 1)], dtype=DTYPE))
 
 
         # TODO 9 (lesson 7): add stop line collision points for red traffic lights

@@ -98,7 +98,6 @@ class SimpleSpeedPlanner:
             idx = np.argmin(calculated_target_velocities)
             target_object_distance = collision_point_distances[idx] - self.distance_to_car_front
             target_object_speed = collision_point_speeds[idx]
-            collision_point_braking_distance = collision_point_braking_distances[idx]
             collision_point_category = collision_points[idx]["category"]
             stopping_point_distance = collision_point_distances[idx] - collision_points[idx]['distance_to_stop']
             target_velocity = calculated_target_velocities[idx]
