@@ -94,7 +94,10 @@ class GlobalPlanner:
 
     def convert_laneletseq_to_waypoints_list(self, laneletseq):
         waypoints = []
+        last_lanelet_start = 0
         for j, lanelet in enumerate(laneletseq):
+            last_lanelet_start = len(waypoints)
+
             speed = self.speed_limit / 3.6
             if 'speed_ref' in lanelet.attributes:
                 speed = min(speed, float(lanelet.attributes['speed_ref']) / 3.6)
@@ -111,9 +114,9 @@ class GlobalPlanner:
                 waypoints.append(waypoint)
 
         if waypoints:
-            xy = np.array([(w.position.x, w.position.y) for w in waypoints])
+            last_lanelet_xy = np.array([(w.position.x, w.position.y) for w in waypoints[last_lanelet_start:]])
             goal_xy = np.array([self.goal_point.x, self.goal_point.y])
-            idx = int(np.argmin(np.linalg.norm(xy - goal_xy, axis=1)))
+            idx = last_lanelet_start + int(np.argmin(np.linalg.norm(last_lanelet_xy - goal_xy, axis=1)))
 
             waypoints = waypoints[:idx + 1]
             self.goal_point = BasicPoint2d(waypoints[-1].position.x, waypoints[-1].position.y)
