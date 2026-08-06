@@ -65,11 +65,28 @@ Your framework from the previous lessons is a simplified one. Remember all limit
 4. Fill in the three descriptions below: what happens in the scenario, how your framework fails, and what change to the framework would fix it. Add screenshots if needed.
 5. Commit and push everything, and be ready to demonstrate your failure cases at the practice session
 
+
 ##### Failure case 1
-...
+
+Scenario: A bus is parked at the kerb on bus stop. A pedestrian waits on the pavement behind it, hidden from the approaching vehicle and plans to move forward.
+
+How the framework fails: Collision_checker only tests what it can see. The framework has no concept for unobserved space. While the pedestrian is behind the bus there is no detection at all, so no collision point exists and the vehicle approaches at the full speed limit. A human driver slows past a parked bus precisely because they cannot see past it.
+
+Proposed fix: Would be to treat large static objects near the path as sight-line blockers, where we can compute the worst-case emergence point at the edge of the occlusion shadow, and insert a virtual collision point there. The speed planner then can cap the velocity so the vehicle could stop for something stepping out. 
 
 ##### Failure case 2
-...
+
+Scenario: A pedestrian approaches a zebra crossing, steps toward the kerb, pauses, then steps out. Basically a hesitent pedestrian who has trouble making decisions on whether to cross or not.
+
+How the framework fails: A hesitating pedestrian crosses the boundary repeatedly, so the collision point appears and disappears frame to frame and the target velocity flickers between stopping and driving. 
+
+Proposed fix: Extract crosswalk regulatory elements from the lanelet2 map. Then we can release only after no pedestrian has been near the crossing for a continuous interval, so a pause cannot be misread as the crossing being clear. 
+
 
 ##### Failure case 3
-...
+
+Scenario: A vehicle is approaching at high speed along the main road. The ego vehicle is moving from a narrow lane to the main road. By law the ego vehicle should give way to the vehicle in the main road but here they collide.
+
+How the framework fails: The framework has no concept of right of way. The junction is unsignalled, so no stop line exists in self.stop_lines and no collision point ever produced. 
+
+Proposed fix: Project each approaching vehicle's trajectory to the conflict point and compute when it will get there, against how long the ego needs to clear. Proceed only if the gap exceeds a safety margin. 
