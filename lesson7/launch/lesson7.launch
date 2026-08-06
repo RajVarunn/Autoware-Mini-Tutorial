@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="bag_file"                default="2026-07-31-15-51-57_demo_bag_cut.bag" />
+    <arg name="bag_file"                default="2023-05-25-14-21-10_sensors_Raekoda.bag" />
     <arg name="speed_limit"             default="40" />
     <arg name="lanelet2_map_name"       default="tartu_demo.osm" />
     <arg name="use_tracking"            default="true" />
